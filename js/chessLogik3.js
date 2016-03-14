@@ -1,7 +1,114 @@
 "use strict";
+class Piece{
+	
+	constructor(name,board,color,position,multiMoves,moves){
+		this.name = name;
+		this.board = board;
+		this.color = color;
+		this.position = position;
+		this.moves = moves;
+		this.multiMoves = multiMoves;
+	}
+
+	getMoves(){
+		if ( this.board.isFreeCell(this.position)) return '';
+
+		var newCoor;
+		var lm = '';
+		
+
+		for(var k = 0; k < this.moves.length; k++){				
+				newCoor = this.board.getMove(this.position,this.moves[k]);
+				if (this.multiMoves){
+					while(this.board.isOnBoard(newCoor) && 
+						(this.board.isFreeCell(newCoor)||this.board.isOpponentFigure(this.position,newCoor)) ){
+						lm += newCoor;
+						if(this.board.isOpponentFigure(this.position,newCoor)){
+							break;
+						}
+						newCoor = this.board.getMove(newCoor,this.moves[k]);					
+					}
+				}
+				else {
+					if(this.board.isOnBoard(newCoor) && 
+						(this.board.isFreeCell(newCoor)||this.board.isOpponentFigure(this.position,newCoor))){						
+						lm += newCoor;
+					}
+				}
+			}
+			return lm;
+	}
+}
+
+class Rook extends Piece {
+  	constructor(board,color,position){
+		super('R',board,color,position,true,[{i:1,j:0},{i:-1,j:0},{i:0,j:1},{i:0,j:-1}]);
+		this.board = board;
+		this.color = color;
+		this.position = position;
+  	}
+}
+
+class Knight extends Piece {
+  	constructor(board,color,position){
+		super('N',board,color,position,false,[{i:2,j:1},{i:2,j:-1},{i:-2,j:1},{i:-2,j:-1},
+			{i:1,j:2},{i:1,j:-2},{i:-1,j:2},{i:-1,j:-2}]);
+		this.board = board;
+		this.color = color;
+		this.position = position;
+  	}
+}
+
+class Bishop extends Piece {
+  	constructor(board,color,position){
+		super('B',board,color,position,true,[{i:1,j:1},{i:-1,j:-1},{i:1,j:-1},{i:-1,j:1}]);
+		this.board = board;
+		this.color = color;
+		this.position = position;
+  	}
+}
+
+class Queen extends Piece {
+  	constructor(board,color,position){
+		super('Q',board,color,position,true,[{i:1,j:1},{i:-1,j:-1},{i:1,j:-1},{i:-1,j:1},
+			{i:1,j:0},{i:-1,j:0},{i:0,j:1},{i:0,j:-1}]);
+		this.board = board;
+		this.color = color;
+		this.position = position;
+  	}
+}
+
+class King extends Piece {
+  	constructor(board,color,position){
+		super('K',board,color,position,false,[{i:1,j:1},{i:-1,j:-1},{i:1,j:-1},{i:-1,j:1},
+			{i:1,j:0},{i:-1,j:0},{i:0,j:1},{i:0,j:-1}]);
+		this.board = board;
+		this.color = color;
+		this.position = position;
+  	}
+}
 class Board{
 	
 	constructor(){
+		this.pieces ={};
+		this.pieces ['a1'] = new Rook(this,'w','a1');
+		this.pieces ['h1'] = new Rook(this,'w','h1');
+		this.pieces ['b1'] = new Knight(this,'w','b1');
+		this.pieces ['g1'] = new Knight(this,'w','g1');
+		this.pieces ['c1'] = new Bishop(this,'w','c1');
+		this.pieces ['f1'] = new Bishop(this,'w','f1');
+		this.pieces ['d1'] = new Queen(this,'w','c1');
+		this.pieces ['e1'] = new King(this,'w','f1');
+
+		this.pieces ['a8'] = new Rook(this,'b','a8');
+		this.pieces ['h8'] = new Rook(this,'b','h8');
+		this.pieces ['b8'] = new Knight(this,'b','b8');
+		this.pieces ['g8'] = new Knight(this,'b','g8');
+		this.pieces ['c8'] = new Bishop(this,'b','c8');
+		this.pieces ['f8'] = new Bishop(this,'b','f8');
+		this.pieces ['d8'] = new Queen(this,'b','c8');
+		this.pieces ['e8'] = new King(this,'b','f8');
+/*
 		this.figures = {};	
 		this.figures['a1'] = 'R';
 		this.figures['h1'] = 'R';
@@ -34,7 +141,7 @@ class Board{
 			{i:1,j:0},{i:-1,j:0},{i:0,j:1},{i:0,j:-1}]};
 		this.rules['k'] = {multiMoves:false,
 			moves:[{i:1,j:1},{i:-1,j:-1},{i:1,j:-1},{i:-1,j:1},
-			{i:1,j:0},{i:-1,j:0},{i:0,j:1},{i:0,j:-1}]};
+			{i:1,j:0},{i:-1,j:0},{i:0,j:1},{i:0,j:-1}]};*/
 	} 
 
 	
@@ -48,31 +155,27 @@ class Board{
 		
 	isOpponentFigure(from,to)	{
 		if (this.isFreeCell(to)) return false;
+		if (this.pieces[from].color != this.pieces[to].color) return true;
+		return false;
+
+		/*if (this.isFreeCell(to)) return false;
 		var s = this.figures[from].charCodeAt(0);
 		var e = this.figures[to].charCodeAt(0);
 		
 		if ((s < 96 && e > 96)||(s > 96 && e < 96)) return true;
-		return false;
+		return false;*/
 	}
 		
 	isFreeCell(coor){
 		
-		return this.figures[coor] === undefined ? true : false;
+		return this.pieces[coor] === undefined ? true : false;
 	}
 
 	getPosition(){
 		var out = {};
 
-		var newFigure;
-		for (var key in this.figures){
-			if (this.figures[key].charCodeAt(0) > 96){
-				newFigure = 'b'
-			}
-			else{
-				newFigure = 'w'
-			}
-			newFigure += this.figures[key].toUpperCase();
-			out[key] = newFigure;
+		for (var key in this.pieces){
+			out[key] = this.pieces[key].color+this.pieces[key].name; 	
 		}
 		return out;
 	}
@@ -84,12 +187,10 @@ class Board{
 				(+from.toLowerCase().charAt(1)+move.i);		
 	}
 	
-	//this.rules['r'].moves[0].i
-	//this.rules['r'].multiMoves
-	getLegalMoves(from){
-		if ( this.isFreeCell(from)) return '';
-
-		var newCoor;
+	getMoves(from){
+		//if ( this.isFreeCell(from)) return '';
+		return this.pieces[from].getMoves();
+		/*var newCoor;
 		var lm = '';
 		var keyFigure = this.figures[from].toLowerCase();
 
@@ -112,56 +213,19 @@ class Board{
 					}
 				}
 			}
-			return lm;
-
+			return lm;*/
 	}
 	
 	canMove (from,to){
-		var mv = this.getLegalMoves(from);
+		var mv = this.getMoves(from);
 		if (mv.indexOf(to) >= 0){
-			this.figures[to] = this.figures[from];
-			delete this.figures[from];
+			this.pieces[to] = this.pieces[from];
+			this.pieces[to].position = to;
+			delete this.pieces[from];
 			return true;
-			
 		}
 		return false;
 	}
-
-
-	
-
-/*
-	function figure(n,m,multm){
-		this.moves = m;//.slice();
-		this.multiMoves = multm;
-		this.name = n;
-		
-		
-	
-		this.getLegalMoves = function (from){
-
-			var newCoor;
-			var lm = '';
-			for(var k = 0; k < this.moves.length; k++){				
-				newCoor = getMove(from,this.moves[k]);
-				if (this.multiMoves){
-					while(isOnBoard(newCoor) && (isFreeCell(newCoor)||isOpponentFigure(from,newCoor)) ){
-						lm += newCoor;
-						if(isOpponentFigure(from,newCoor)){
-							break;
-						}
-						newCoor = getMove(newCoor,this.moves[k]);						
-					}
-				}
-				else {
-					if(isOnBoard(newCoor) && (isFreeCell(newCoor)||isOpponentFigure(from,newCoor))){						
-						lm += newCoor;
-					}
-				}
-			}
-			return lm;
-		}			
-	}	*/
 }
 
 
