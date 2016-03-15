@@ -1,6 +1,6 @@
 window.onload=function() {
 
-  chessBoard = new Board();
+ /* chessBoard = new Board();
 
 
   var onDrop = function(source, target, piece, newPos, oldPos, orientation) {
@@ -20,5 +20,5 @@ window.onload=function() {
   var board = ChessBoard('board', cfg);
   
   board.position(chessBoard.getPosition());
-    
+    */
 }
